@@ -1,0 +1,22 @@
+{
+  "name": "claude-code-project-setup",
+  "version": "1.0.0",
+  "description": "Auto-discover project tooling (venvs, linters, test runners, IDE settings) and configure .claude/ accordingly",
+  "keywords": [
+    "claude-code-plugin",
+    "claude-code",
+    "project-setup",
+    "auto-configure"
+  ],
+  "author": "Lambdao",
+  "license": "MIT",
+  "files": [
+    ".claude-plugin/",
+    "commands/",
+    "skills/",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "bash test/dry-run.sh"
+  }
+}

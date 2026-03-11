@@ -1,0 +1,7 @@
+{
+  "name": "project-setup",
+  "description": "Auto-discover project tooling (venvs, linters, test runners, IDE settings) and configure .claude/ accordingly",
+  "author": {
+    "name": "len"
+  }
+}
