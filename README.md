@@ -89,6 +89,22 @@ Appends concise sections (only if the `##` header doesn't already exist):
 - `## Linting` — canonical lint command
 - `## Testing` — canonical test command, single-test pattern
 
+## Publishing to npm
+
+The GitHub Actions workflow publishes to npm automatically when you push a version tag:
+
+```bash
+npm version patch  # or minor/major
+git push --follow-tags
+```
+
+### Setup
+
+1. Create an account on https://www.npmjs.com
+2. Go to **Access Tokens** in your account settings
+3. Generate a new **Automation** token
+4. Add it as a GitHub repo secret named `NPM_TOKEN` under **Settings > Secrets and variables > Actions**
+
 ## Submitting to the official directory
 
 This plugin can be submitted to the [Anthropic Plugin Directory](https://github.com/anthropics/claude-plugins-official) for review and distribution.
