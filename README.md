@@ -21,21 +21,53 @@ This plugin bridges that gap. It reads what your IDE and project files already d
 ## Installation
 
 ```bash
-claude plugin add claude-code-project-setup
+claude plugin install claude-code-project-setup
 ```
 
 Or install from the repository directly:
 
 ```bash
-claude plugin add /path/to/project-setup
+claude plugin install /path/to/project-setup
 ```
 
+### Try without installing (session-only)
+
+To test the plugin without installing it, load it for a single session:
+
+```bash
+cd /your/project
+claude --plugin-dir /path/to/project-setup
+```
+
+The plugin is active only for that session. Commands are namespaced by the plugin name, so run `/project-setup:project-setup` instead of `/project-setup`.
+
 ## Usage
+
+### Testing with a PyCharm project
+
+1. Open a terminal in your PyCharm project root (the folder containing `.idea/`)
+2. Launch Claude with the plugin:
+   ```bash
+   cd /your/pycharm/project
+   claude --plugin-dir /path/to/project-setup
+   ```
+3. Inside the session, run a dry run first:
+   ```
+   /project-setup:project-setup --dry-run
+   ```
+
+The plugin reads `.idea/*.iml` (source roots), `misc.xml` (Python interpreter), and `runConfigurations/*.xml` (test setup). If the output looks right, apply it:
+
+```
+/project-setup:project-setup
+```
+
+**Note:** The plugin only detects folders that PyCharm has registered as modules in `.idea/modules.xml`. If you have multiple folders open in PyCharm but they aren't configured as modules (e.g. you opened them informally alongside the main project), the plugin won't find them. In that case, add them manually — see [Manual directory configuration](#manual-directory-configuration) below.
 
 ### Auto-configure a project
 
 ```
-/project-setup
+/project-setup:project-setup
 ```
 
 Runs all detectors, shows a summary of findings, and asks for approval before writing configuration files.
@@ -43,7 +75,7 @@ Runs all detectors, shows a summary of findings, and asks for approval before wr
 ### Dry run (no writes)
 
 ```
-/project-setup --dry-run
+/project-setup:project-setup --dry-run
 ```
 
 Runs detection and shows the proposed changes without writing any files.
@@ -71,6 +103,23 @@ dir-permission-default: read
 - `read-only` — adds `Read` only (no search tools)
 - `edit` — adds `Read`, `Glob`, `Grep`, `Edit`, `Write`
 - `full` — adds `Read`, `Glob`, `Grep`, `Edit`, `Write`, `Bash(*)`
+
+## Manual directory configuration
+
+If the plugin can't detect your extra directories automatically, create `.claude/settings.json` in your project root:
+
+```json
+{
+  "permissions": {
+    "additionalDirectories": [
+      "../other-project",
+      "../another-project"
+    ]
+  }
+}
+```
+
+Paths are relative to the project root. Claude will have read access to these directories without prompting.
 
 ## What it writes
 
