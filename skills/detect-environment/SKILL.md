@@ -93,9 +93,23 @@ Record: package manager, node version, version constraint file.
 
 Record: Rust version, toolchain, edition.
 
+**CLAUDE.md section:**
+```markdown
+## Environment
+- Rust <version> (edition <edition>, toolchain <toolchain>)
+- Build: `cargo build`
+```
+
 ## Go
 
 1. Check `go.mod` exists → extract `module` path and `go` version directive
 2. Run `go version 2>/dev/null`
 
 Record: Go version, module path.
+
+**CLAUDE.md section:**
+```markdown
+## Environment
+- Go <version> (module <module_path>)
+- Build: `go build ./...`
+```

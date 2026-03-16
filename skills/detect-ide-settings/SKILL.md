@@ -29,7 +29,9 @@ Read `.vscode/settings.json` if it exists. Extract:
 
 Also check for `*.code-workspace` files in the project root — extract `folders[].path` entries as potential additional directories.
 
-## PyCharm
+## PyCharm / JetBrains IDEs
+
+All JetBrains IDEs (IntelliJ IDEA, WebStorm, GoLand, etc.) share the `.idea/` directory structure. The detection below applies to any of them.
 
 If `.idea/` directory exists, read:
 

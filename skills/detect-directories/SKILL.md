@@ -36,7 +36,7 @@ Submodules inside the project are already accessible. Only flag those outside th
 
 ### Symlinks
 ```bash
-find . -maxdepth 2 -type l -not -path './.git/*' 2>/dev/null
+find . -maxdepth 2 -type l -not -path './.git/*' 2>/dev/null | head -50
 ```
 Check if any symlinks point outside the project root with `readlink -f`.
 

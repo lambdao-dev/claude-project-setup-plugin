@@ -14,7 +14,8 @@
     ".claude-plugin/",
     "commands/",
     "skills/",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
     "test": "bash test/dry-run.sh"

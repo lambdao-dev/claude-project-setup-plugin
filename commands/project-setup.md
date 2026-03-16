@@ -21,107 +21,27 @@ If `.claude/project-setup.local.md` does not exist, the default directory permis
 
 ## Step 2: Run Detection
 
-Run each detection phase. For each, read the relevant files and run commands as described below. Track all findings in a structured internal summary.
+Run each detection phase using the corresponding skill. Track all findings in a structured internal summary.
 
 ### 2a: IDE Settings (run first — feeds hints to other detectors)
 
-Check for IDE configuration files and extract hints:
-
-**VSCode** — read `.vscode/settings.json` if it exists:
-- `python.defaultInterpreterPath` → venv path hint
-- `python.testing.pytestEnabled`, `python.testing.pytestArgs` → test runner hint
-- `python.linting.ruffEnabled`, `python.linting.flake8Enabled`, `python.linting.mypyEnabled` → linter hints
-- `python.envFile` → env file location
-- `eslint.*`, `editor.defaultFormatter` → JS linter hints
-- Check for `*.code-workspace` files → multi-root workspace dirs
-
-**PyCharm** — read `.idea/` contents if the directory exists:
-- `*.iml` files → look for `<sourceFolder>` and `<excludeFolder>` XML elements → source roots
-- `misc.xml` → `<component name="ProjectRootManager">` → SDK/interpreter path → venv hint
-- `runConfigurations/*.xml` → `<configuration type="tests">` → test runner config
-
-Store all hints for use in subsequent detection phases.
+Use the `detect-ide-settings` skill. Store all returned hints (venv paths, linter names, test runner, source roots) for use in subsequent phases.
 
 ### 2b: Environment Detection
 
-Detect language runtimes and virtual environments. Check in order:
-
-**Python:**
-1. Standard venv dirs: `.venv/`, `venv/`, `env/` (check if `bin/python` exists inside)
-2. `poetry.lock` → run `poetry env info -p 2>/dev/null`
-3. `Pipfile` → run `pipenv --venv 2>/dev/null`
-4. `pdm.lock` → run `pdm venv --path in-project 2>/dev/null`
-5. `uv.lock` → default `.venv/`
-6. IDE hint from step 2a
-7. Validate: run `<venv>/bin/python --version` to confirm
-8. Record: venv path, Python version, package manager
-
-**Node/JS:**
-1. Check `package.json` exists
-2. Detect package manager: `pnpm-lock.yaml` → pnpm, `yarn.lock` → yarn, `bun.lockb` → bun, else npm
-3. Check `.nvmrc` or `.node-version` for version pinning
-4. Record: package manager, node version constraint
-
-**Rust:**
-1. Check `Cargo.toml` exists
-2. Check `rust-toolchain.toml` or `rust-toolchain` for toolchain
-3. Record: toolchain, edition
-
-**Go:**
-1. Check `go.mod` exists → extract module path and Go version
-2. Record: Go version, module path
+Use the `detect-environment` skill. Pass any venv hints from step 2a as context.
 
 ### 2c: Directory Detection
 
-Find additional source directories that should be accessible:
-
-1. **Monorepo configs**: `lerna.json`, `pnpm-workspace.yaml`, `package.json` `workspaces` field
-2. **Git submodules**: run `git submodule status 2>/dev/null`
-3. **Cargo workspaces**: `Cargo.toml` `[workspace]` section with `members`
-4. **Go workspaces**: `go.work` file
-5. **IDE source roots**: PyCharm `.iml` sourceFolder entries, VSCode `*.code-workspace` folders
-6. **Symlinks**: check for symlinks pointing outside the project root
-
-Only include directories that exist and are outside the current project root.
+Use the `detect-directories` skill. Pass any source root hints from step 2a as context.
 
 ### 2d: Linter Detection
 
-Find linters and formatters. Check these sources:
-
-1. `.pre-commit-config.yaml` → parse repos/hooks for linter names (ruff, black, isort, flake8, mypy, pylint, eslint, prettier, etc.)
-2. `pyproject.toml` → `[tool.ruff]`, `[tool.black]`, `[tool.mypy]`, `[tool.isort]`, `[tool.pylint]`
-3. `setup.cfg` → `[flake8]`, `[mypy]`, `[isort]`
-4. `package.json` → `scripts.lint`, `devDependencies` for eslint/prettier/biome
-5. `biome.json` or `biome.jsonc`
-6. `.eslintrc*`, `.prettierrc*`, `ruff.toml`, `.flake8`, `mypy.ini`, `.pylintrc`
-7. `Cargo.toml` → clippy config; `rustfmt.toml`
-8. `.golangci.yml` or `.golangci.yaml`
-9. `Makefile` → `lint` or `format` targets
-10. IDE hints from step 2a
-
-Determine the canonical lint command (priority order):
-- `pre-commit run --all-files` (if `.pre-commit-config.yaml` exists)
-- `make lint` (if Makefile has lint target)
-- `npm run lint` / `pnpm lint` / `yarn lint` (if package.json scripts.lint exists)
-- `ruff check .` (if ruff configured)
-- `cargo clippy` (if Rust project)
-- `golangci-lint run` (if Go project)
-- Individual linter commands as fallback
+Use the `detect-linters` skill. Pass any linter hints from step 2a as context.
 
 ### 2e: Test Runner Detection
 
-Find test runners and how to run tests:
-
-1. `pyproject.toml` → `[tool.pytest.ini_options]`; also `pytest.ini`, `conftest.py`
-2. `tox.ini` → `[testenv]` commands
-3. `noxfile.py` or `nox.py`
-4. `package.json` → `scripts.test`; also jest/vitest/mocha/playwright config files
-5. `Cargo.toml` → `cargo test`
-6. `go.mod` + `*_test.go` files → `go test ./...`
-7. `Makefile` → `test` or `check` targets
-8. IDE hints from step 2a (PyCharm run configurations)
-
-Determine the canonical test command and detect test directory convention (`tests/`, `test/`, co-located, etc.).
+Use the `detect-test-runners` skill. Pass any test runner hints from step 2a as context.
 
 ## Step 3: Aggregate Findings
 
