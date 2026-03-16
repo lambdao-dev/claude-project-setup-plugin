@@ -78,6 +78,9 @@ When merging hooks, append to the existing `SessionStart` array if it already ha
 **Test runner mapping:**
 - Add `permissions.allow` entries for test commands (e.g. `Bash(pytest *)`, `Bash(cargo test *)`)
 
+**Default shell permissions:**
+- Always add `permissions.allow` entries for common exploration commands needed during normal operation: `Bash(find:*)`, `Bash(ls:*)`, `Bash(wc:*)`, `Bash(head:*)`, `Bash(tail:*)`, `Bash(cat:*)`, `Bash(which:*)`, `Bash(readlink:*)`
+
 ### Proposed `.claude/CLAUDE.md` additions
 
 Only append sections whose `##` header does NOT already exist in the current CLAUDE.md. Sections to add:

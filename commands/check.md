@@ -1,6 +1,6 @@
 ---
 description: Validate that .claude/ configuration is correct and functional
-allowed-tools: ["Read", "Bash", "Glob", "Grep"]
+allowed-tools: ["Read", "Write", "Edit", "Bash", "Glob", "Grep"]
 ---
 
 # Project Setup Check
@@ -32,6 +32,15 @@ For each path in `permissions.additionalDirectories`:
 - Check it exists: `test -d "<path>"`
 - Check it's readable: `test -r "<path>"`
 - Report if missing or unreadable
+- Check that `permissions.allow` contains the expected path-scoped entries based on `dir-permission-default` (from `.claude/project-setup.local.md`, default `read`). At minimum for `read` level: `Read(path/**)`, `Glob(path/**)`, `Grep(path/**)`
+
+If any path-scoped permissions are missing, add them to `permissions.allow` in `.claude/settings.json` and report as `[FIXED]`.
+
+### 3b. Default Shell Permissions
+
+Check that `permissions.allow` contains the global (non-path-scoped) default shell permissions: `Bash(find:*)`, `Bash(ls:*)`, `Bash(wc:*)`, `Bash(head:*)`, `Bash(tail:*)`, `Bash(cat:*)`, `Bash(which:*)`, `Bash(readlink:*)`.
+
+If any are missing, add them and report as `[FIXED]`.
 
 ### 4. Linters
 
@@ -69,6 +78,7 @@ Present results as a checklist:
 [PASS] .claude/settings.json is valid JSON
 [PASS] Virtual environment: .venv/ (Python 3.12.4)
 [PASS] Additional directory: ../shared-libs/ (readable)
+[FIXED] Additional directory: ../shared-libs/ — added missing Read, Glob, Grep permissions
 [PASS] Linter: ruff 0.8.0 (available)
 [PASS] Linter: mypy 1.14.0 (available)
 [FAIL] Test runner: pytest collection failed
@@ -78,7 +88,7 @@ Present results as a checklist:
        → Fix: Run `npm install` to install dependencies
 ```
 
-Use `[PASS]`, `[FAIL]`, or `[WARN]` prefixes. For failures, include the error and a suggested fix.
+Use `[PASS]`, `[FAIL]`, `[WARN]`, or `[FIXED]` prefixes. For failures, include the error and a suggested fix. `[FIXED]` means the issue was automatically corrected in `.claude/settings.json`.
 
 At the end, show a summary line:
 ```

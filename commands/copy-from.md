@@ -79,6 +79,7 @@ For each entry in the source `permissions.allow`:
 - **Tool commands** (e.g. `Bash(pytest *)`, `Bash(pre-commit run *)`): keep if the same tool is available in the current project (detected in Step 4). Drop if the tool is not present. Substitute if the current project uses a different equivalent (e.g. source uses `npm run lint`, current project uses `pnpm lint`).
 - **Path-based permissions** (e.g. `Read(../Dep2/**)`): rewrite using the directory mapping from Step 5b.
 - Entries referencing `permissions.deny` are never modified.
+- **Default shell permissions** (e.g. `Bash(find:*)`, `Bash(ls:*)`): always include these — they are part of the default setup regardless of source project.
 
 ### 5d: CLAUDE.md Content
 
