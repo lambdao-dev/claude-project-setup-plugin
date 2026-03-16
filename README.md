@@ -88,6 +88,49 @@ Runs detection and shows the proposed changes without writing any files.
 
 Checks that all referenced paths, tools, and commands in `.claude/settings.json` and `.claude/CLAUDE.md` actually work.
 
+### Copy configuration from another project
+
+```
+/project-setup:copy-from [/path/to/source-project] [--dry-run]
+```
+
+Reads `.claude/` configuration from a source project and adapts it for the current project. Rather than a verbatim copy, paths, environments, and tool references are remapped:
+
+- **Virtual environment** — the source venv path is replaced with the one detected in the current project.
+- **Additional directories** — each source directory is matched to an equivalent relative to the current project root. If the mapping is ambiguous you'll be asked to confirm.
+- **Allowed commands** — tool commands (e.g. `Bash(pytest *)`) are kept only if the same tool is present; substitutions are made when the current project uses an equivalent (e.g. `pnpm` instead of `npm`).
+- **CLAUDE.md sections** — `## Environment`, `## Linting`, and `## Testing` are regenerated from fresh detection; other sections are copied and paths are rewritten.
+
+If no path is given, the command will ask for one. Use `--dry-run` to preview changes without writing any files.
+
+#### Testing copy-from
+
+1. Open a terminal in the **target** project (e.g. `src/projectK`) — it does not need an existing `.claude/`
+2. Launch Claude with the plugin:
+   ```bash
+   cd src/projectK
+   claude --plugin-dir /path/to/project-setup
+   ```
+3. Run a dry run first:
+   ```
+   /project-setup:copy-from ../projectA --dry-run
+   ```
+4. Check the summary — the "Adapted" section should show path remapping, not just "Copied as-is"
+5. If the output looks right, apply it:
+   ```
+   /project-setup:copy-from ../projectA
+   ```
+
+**What to check in the output:**
+
+| Scenario | Expected result |
+|---|---|
+| Source has a venv path | Replaced with target project's venv, not copied verbatim |
+| Source `additionalDirectories` exist near target | Carried over automatically |
+| Source `additionalDirectories` don't exist near target | Warned and dropped |
+| Source `additionalDirectories` have an ambiguous match | You are prompted to confirm |
+| Target has `permissions.deny` entries | Unchanged after copy |
+
 ## Configuration
 
 Create `.claude/project-setup.local.md` to customize behavior:
@@ -106,20 +149,46 @@ dir-permission-default: read
 
 ## Manual directory configuration
 
-If the plugin can't detect your extra directories automatically, create `.claude/settings.json` in your project root:
+If the plugin can't detect your extra directories automatically, or you want to fine-tune what it produced, edit `.claude/settings.json` in your project root directly.
+
+### Multi-project example
+
+If you have several sibling projects (e.g. `src/projectA`, `src/projectR`, `src/projectK`) and want Claude to work across all of them from `projectK`:
 
 ```json
 {
   "permissions": {
     "additionalDirectories": [
-      "../other-project",
-      "../another-project"
+      "../projectA",
+      "../projectR"
+    ],
+    "allow": [
+      "Bash(pytest *)",
+      "Bash(pre-commit run *)",
+      "Read(../projectA/**)",
+      "Read(../projectR/**)"
     ]
+  },
+  "env": {
+    "VIRTUAL_ENV": "/absolute/path/to/projectK/.venv"
+  },
+  "hooks": {
+    "SessionStart": ["source /absolute/path/to/projectK/.venv/bin/activate"]
   }
 }
 ```
 
-Paths are relative to the project root. Claude will have read access to these directories without prompting.
+### Fields at a glance
+
+| Field | Purpose |
+|---|---|
+| `permissions.additionalDirectories` | Directories Claude can browse freely (relative to project root) |
+| `permissions.allow` | Pre-approved tool+path combinations, so Claude doesn't prompt for each |
+| `permissions.deny` | Explicitly blocked tools or paths — **never modified by the plugin** |
+| `env.VIRTUAL_ENV` | Python virtual environment path (absolute) |
+| `hooks.SessionStart` | Shell commands run at session start, e.g. venv activation |
+
+`additionalDirectories` paths are relative to the project root. `env` and `hooks` paths must be absolute. `permissions.deny` is never touched by the plugin regardless of what other commands run.
 
 ## What it writes
 
