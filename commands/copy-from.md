@@ -14,7 +14,7 @@ If `$ARGUMENTS` does not contain a path (only contains flags like `--dry-run`, o
 
 > Which project should I copy the .claude/ configuration from? Provide an absolute or relative path.
 
-Resolve the path to an absolute path. Verify that it exists and contains `.claude/settings.json` or `.claude/CLAUDE.md`. If neither exists, tell the user there is nothing to copy and stop.
+Resolve the path to an absolute path **relative to the current working directory** (i.e. the target project root — use `pwd` via Bash if needed to confirm it). Do not resolve relative to the plugin directory or any other location. Verify that the resolved path exists and contains `.claude/settings.json` or `.claude/CLAUDE.md`. If neither exists, print the absolute path that was checked so the user can confirm it is correct, then stop.
 
 ## Step 2: Read Source Configuration
 
