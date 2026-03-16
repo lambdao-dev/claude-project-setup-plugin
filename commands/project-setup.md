@@ -17,7 +17,8 @@ Read these files if they exist (store their contents — all changes must merge,
 - `.claude/CLAUDE.md` or `CLAUDE.md`
 - `.claude/project-setup.local.md` (plugin config with `dir-permission-default` in frontmatter)
 
-If `.claude/project-setup.local.md` does not exist, the default directory permission level is `read`.
+If `.claude/project-setup.local.md` does not exist, the default directory permission level is `read`
+(which includes Glob and Grep for search).
 
 ## Step 2: Run Detection
 
@@ -66,9 +67,10 @@ Merge with existing settings using these rules:
 When merging hooks, append to the existing `SessionStart` array if it already has entries.
 
 **Directory mapping (based on `dir-permission-default` setting):**
-- `read` → add `Read(path/**)` to `permissions.allow`
-- `edit` → add `Read(path/**)`, `Edit(path/**)`, `Write(path/**)`
-- `full` → add `Read(path/**)`, `Edit(path/**)`, `Write(path/**)`, `Bash(*)` scoped to path
+- `read` (default) → add `Read(path/**)`, `Glob(path/**)`, `Grep(path/**)` to `permissions.allow`
+- `read-only` → add `Read(path/**)` only (no search tools)
+- `edit` → add `Read(path/**)`, `Glob(path/**)`, `Grep(path/**)`, `Edit(path/**)`, `Write(path/**)`
+- `full` → add `Read(path/**)`, `Glob(path/**)`, `Grep(path/**)`, `Edit(path/**)`, `Write(path/**)`, `Bash(*)` scoped to path
 
 **Linter mapping:**
 - Add `permissions.allow` entries for lint commands (e.g. `Bash(pre-commit run *)`, `Bash(ruff check *)`)
@@ -97,7 +99,7 @@ Show the user a clear summary of what was detected and what will be written:
 - Python 3.12.4 via .venv/ (managed by uv)
 
 ### Additional Directories
-- ../shared-libs/ (read access)
+- ../shared-libs/ (read + search access)
 
 ### Linters
 - pre-commit (ruff, mypy, black)

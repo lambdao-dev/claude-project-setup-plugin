@@ -67,9 +67,10 @@ dir-permission-default: read
 ```
 
 `dir-permission-default` controls what permissions are granted for discovered additional directories:
-- `read` (default) — adds `Read(path/**)`
-- `edit` — adds `Read`, `Edit`, `Write`
-- `full` — adds `Read`, `Edit`, `Write`, `Bash(*)`
+- `read` (default) — adds `Read`, `Glob`, `Grep`
+- `read-only` — adds `Read` only (no search tools)
+- `edit` — adds `Read`, `Glob`, `Grep`, `Edit`, `Write`
+- `full` — adds `Read`, `Glob`, `Grep`, `Edit`, `Write`, `Bash(*)`
 
 ## What it writes
 
