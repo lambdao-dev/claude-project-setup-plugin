@@ -20,6 +20,8 @@ This plugin bridges that gap. It reads what your IDE and project files already d
 
 ## Installation
 
+See the [official Claude Code plugin docs](https://code.claude.com/docs/en/plugins) for general guidance on installing and managing plugins.
+
 ```bash
 claude plugin install claude-code-project-setup
 ```
