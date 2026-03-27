@@ -45,6 +45,16 @@ The plugin is active only for that session. Commands are namespaced by the plugi
 
 ## Usage
 
+### Automatic Setup on Session Start
+
+When the plugin is installed, it automatically detects when you start a new Claude Code session in a project without `.claude/settings.json` or `CLAUDE.md`. The hook injects a message into Claude's context suggesting `/project-setup:project-setup`.
+
+**Limitations:**
+- The message is not displayed in the terminal UI (e.g., "Recent activity" or "Tips"). It's added to Claude's context, so Claude will see the suggestion when you send your first message.
+- The `/init` command cannot be hooked — there's no hook event for built-in CLI commands. If you run `/init`, it creates a basic `CLAUDE.md` without the tooling detection this plugin provides. Run `/project-setup:project-setup` instead or afterwards for full configuration.
+
+If your project is already configured, the hook stays silent.
+
 ### Testing with a PyCharm project
 
 1. Open a terminal in your PyCharm project root (the folder containing `.idea/`)
