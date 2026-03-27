@@ -18,6 +18,17 @@ python3 -m json.tool .claude/settings.json > /dev/null 2>&1
 ```
 If this fails, try `jq . .claude/settings.json`. Report JSON syntax errors.
 
+### 1b. Runtime Context
+
+Check `.claude/CLAUDE.md` (or `CLAUDE.md`) for a line matching `- Context: remote/container environment` inside the `## Environment` section. If found, set `$RUNTIME_CONTEXT=remote`; otherwise `$RUNTIME_CONTEXT=local`.
+
+When `$RUNTIME_CONTEXT` is `remote`:
+- For virtual environment path existence check (in Check 2): report `[INFO]` instead of `[FAIL]` if path doesn't exist locally ("Path may only be valid inside the container runtime")
+- For additional directories path checks (in Check 3): report `[INFO]` instead of `[FAIL]` for non-existent paths
+- Linter/test runner binary checks: run normally (they should exist in the container)
+
+Report: `[INFO] Runtime context: remote (container/cloud environment)` or `[INFO] Runtime context: local`.
+
 ### 2. Virtual Environment
 
 If `env.VIRTUAL_ENV` is set in settings.json:

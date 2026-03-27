@@ -15,16 +15,29 @@ Read these files if they exist (store their contents — all changes must merge,
 - `.claude/settings.json`
 - `.claude/settings.local.json`
 - `.claude/CLAUDE.md` or `CLAUDE.md`
-- `.claude/project-setup.local.md` (plugin config with `dir-permission-default` in frontmatter)
+- `.claude/project-setup.local.md` (plugin config — frontmatter keys: `dir-permission-default`, `runtime-context`)
 
 If `.claude/project-setup.local.md` does not exist, the default directory permission level is `read`
 (which includes Glob and Grep for search).
+
+The `runtime-context` key may be `auto` (default), `local`, or `remote`. Store the value as `$CONFIG_RUNTIME_CONTEXT` (default: `auto`). If the value is anything other than `auto`, `local`, or `remote`, warn the user and treat it as `auto`.
 
 ## Step 2: Run Detection
 
 Run each detection phase using the corresponding skill. Track all findings in a structured internal summary.
 
-### 2a: IDE Settings (run first — feeds hints to other detectors)
+### 2-pre: Runtime Context Detection (run first)
+
+Use the `detect-runtime-context` skill.
+
+- If `$CONFIG_RUNTIME_CONTEXT` is `local` or `remote`: skip the skill. Set `$DETECTED_CONTEXT` to the config value and `$CONTEXT_CONFIDENCE` to `high` (user preference overrides detection).
+- Otherwise run the skill. Store the result as:
+  - `$DETECTED_CONTEXT` ← `context` field (`local`, `remote`, or `uncertain`)
+  - `$CONTEXT_CONFIDENCE` ← `confidence` field (`high` or `low`)
+  - `$CONTEXT_SIGNALS` ← `signals` list (for the summary display)
+  - `$SSH_ONLY` ← `ssh_only` field (true if remote context is SSH-only with no container signals; may inform environment activation strategy)
+
+### 2a: IDE Settings (run next — feeds hints to other detectors)
 
 Use the `detect-ide-settings` skill. Store all returned hints (venv paths, linter names, test runner, source roots) for use in subsequent phases.
 
@@ -86,6 +99,7 @@ When merging hooks, append to the existing `SessionStart` array if it already ha
 Only append sections whose `##` header does NOT already exist in the current CLAUDE.md. Sections to add:
 
 - `## Environment` — language version, venv location, how to activate
+  - If `$DETECTED_CONTEXT` is `remote` (confidence high), append one additional line to the `## Environment` section: `- Context: remote/container environment` (with specifics from `$CONTEXT_SIGNALS` if available, e.g. "GitHub Codespaces", "VS Code Dev Container")
 - `## Linting` — canonical lint command, configured linters
 - `## Testing` — canonical test command, how to run a single test, test directory
 
@@ -97,6 +111,11 @@ Show the user a clear summary of what was detected and what will be written:
 
 ```
 ## Detection Results
+
+### Runtime Context
+- <$DETECTED_CONTEXT> (<$CONTEXT_CONFIDENCE> confidence)
+  Signals: <$CONTEXT_SIGNALS or "none">
+  <If uncertain: "Will ask for confirmation before writing.">
 
 ### Environment
 - Python 3.12.4 via .venv/ (managed by uv)
@@ -121,7 +140,20 @@ If `$ARGUMENTS` contains `--dry-run`, stop here. Do not write any files.
 
 ## Step 5: Write Configuration
 
-After presenting the summary, ask the user for approval using AskUserQuestion before writing.
+**If `$DETECTED_CONTEXT` is `uncertain`** (i.e. `$CONTEXT_CONFIDENCE` is `low`) AND `$CONFIG_RUNTIME_CONTEXT` is `auto`:
+
+Before asking general approval, ask the user a dedicated context question using AskUserQuestion:
+
+> I detected possible container/remote signals but couldn't confirm the execution context automatically. Is this project running locally or in a remote environment?
+>
+> 1. Locally on your workstation
+> 2. Inside a container or remote environment (Codespaces, Dev Containers, Gitpod, SSH, etc.)
+
+Map their answer to `$DETECTED_CONTEXT` (`local` or `remote`) and set `$CONTEXT_CONFIDENCE` to `high`. Then proceed to the general approval question below.
+
+**General approval question** (always asked, using AskUserQuestion):
+
+> [Summary shown above.] Apply these changes to .claude/?
 
 Once approved:
 1. Create `.claude/` directory if it doesn't exist
